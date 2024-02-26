@@ -1,0 +1,97 @@
+<h2>Formulario padre</h2>
+
+<hr>
+<div class="formulario mb-4">
+
+    <form [formGroup]="registroPadrePresenter.form" (ngSubmit)="onSubmit()"  autocomplete="off">
+
+        <!-- codigo -->
+        <div class="mb-3 row">
+            <label class="col-sm-3 col-form-label">Codigo</label>
+            <div class="col-sm-9">
+                <input class="form-control"
+                        formControlName="codeId"
+                       placeholder="Nombre de la persona">
+                <span *ngIf="isValidField('codeId')" class="form-text text-danger">
+                    {{ getFieldError('codeId') }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Nombre -->
+        <div class="mb-3 row">
+            <label class="col-sm-3 col-form-label">Nombre</label>
+            <div class="col-sm-9">
+                <input class="form-control"
+                        formControlName="name"
+                       placeholder="Nombre de la persona">
+                <span *ngIf="isValidField('name')" class="form-text text-danger">
+                    {{ getFieldError('name') }}
+                </span>
+            </div>
+        </div>
+        
+            <app-registro-observable
+            [registroForm]="formularioHijo"
+            > 
+            </app-registro-observable>
+       
+        
+
+
+        <div class="row">
+            <div class="col-sm-12">
+                <button type="submit"
+                        class="btn btn-primary float-end"
+                        >
+                        <!-- [disabled]="myForm.invalid" -->
+                    Guardar
+                </button>
+            </div>
+        </div>
+
+        
+
+    </form>
+
+
+    <ng-container *ngIf=seccondForm>
+
+        <h2>SEGUNDO FORMUALRIO PADRE</h2>
+        <form [formGroup]="registroPadrePresenter.form" (ngSubmit)="onSubmit()"  autocomplete="off">
+            
+            <app-registro-observable
+            [registroForm]="formularioHijo"
+            > 
+            </app-registro-observable>
+       
+    
+        </form>
+    
+    
+    </ng-container>
+    
+
+
+    <div class="row">
+        <div class="col-sm-12">
+            <button type="button"
+                    class="btn btn-primary float-end"
+                    (click)="nextPage()"
+                    >
+                siguiente
+            </button>
+        </div>
+    </div>
+
+    
+
+</div>
+
+
+
+
+<span>Valores</span>
+<pre>{{ registroPadrePresenter.form.get('codeId').value | json }}</pre>
+<pre>{{ registroPadrePresenter.form.get('name').value | json }}</pre>
+<br>

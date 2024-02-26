@@ -1,0 +1,69 @@
+<h2>Formulario</h2>
+<hr>
+<div class="formulario mb-4">
+    <form [formGroup]="registroPresenter.form" (ngSubmit)="onSubmit()"  autocomplete="off">
+
+        <!-- Nombre -->
+        <div class="mb-3 row">
+            <label class="col-sm-3 col-form-label">Nombre</label>
+            <div class="col-sm-9">
+                <input class="form-control"
+                        formControlName="name"
+                       placeholder="Nombre de la persona">
+                <span *ngIf="isValidField('name')" class="form-text text-danger">
+                    {{ getFieldError('name') }}
+                </span>
+            </div>
+        </div>
+    
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" value="" id="defaultCheck1" formControlName="extraValues" (change)="isCheck($event)">
+          <label class="form-check-label" for="defaultCheck1">
+            valores extras
+          </label>
+        </div>
+
+    
+        <ng-container *ngIf="registroPresenter.form.get('extraValues').value">
+    
+        <!-- apellido paterno -->
+        <div class="mb-3 row">
+            <label class="col-sm-3 col-form-label">Apellido paterno</label>
+            <div class="col-sm-9">
+                <input class="form-control"
+                        formControlName="lastname"
+                       placeholder="Nombre de la persona">
+                <span *ngIf="isValidField('lastname')" class="form-text text-danger">
+                    {{ getFieldError('lastname') }}
+                </span>
+            </div>
+        </div>
+    
+        <!-- apellido materno -->
+        <div class="mb-3 row">
+            <label class="col-sm-3 col-form-label">Apellido Materno</label>
+            <div class="col-sm-9">
+                <input class="form-control"
+                        formControlName="mothername"
+                       placeholder="Nombre de la persona">
+                <span *ngIf="isValidField('mothername')" class="form-text text-danger">
+                    {{ getFieldError('mothername') }}
+                </span>
+            </div>
+        </div>
+    
+        </ng-container>
+        
+    
+    </form>
+</div>
+
+
+
+
+<span>Valores</span>
+<pre>{{ registroPresenter.form.get('name').value | json }}</pre>
+<pre>{{ registroPresenter.form.get('extraValues').value | json }}</pre>
+<pre>{{ registroPresenter.form.get('lastname').value | json }}</pre>
+<pre>{{ registroPresenter.form.get('mothername').value | json }}</pre>
+<br>

@@ -1,0 +1,94 @@
+<h2>Formulario extra</h2>
+
+<hr>
+<div class="formulario mb-4">
+    <form [formGroup]="registroForm" (ngSubmit)="onSubmit()"  autocomplete="off">
+
+        <div class="form-check mb-3">
+            <!-- <input class="form-check-input" type="checkbox" value="" id="defaultCheck1" formControlName="extraValues" (change)="isCheck($event)"> -->
+            <input class="form-check-input" type="checkbox" value="" id="defaultCheck1" formControlName="extraValues">
+            <label class="form-check-label" for="defaultCheck1">
+              valores extras
+            </label>
+          </div>
+    
+
+            <!-- apellido paterno -->
+            <div class="mb-3 row">
+                <label class="col-sm-3 col-form-label">Apellido paterno</label>
+                <div class="col-sm-9">
+                    <input class="form-control"
+                            formControlName="lastname"
+                        placeholder="apellido Paterno">
+                    <span *ngIf="isValidField('lastname')" class="form-text text-danger">
+                        {{ getFieldError('lastname') }}
+                    </span>
+                </div>
+            </div>
+        
+            <!-- apellido materno -->
+            <div class="mb-3 row">
+                <label class="col-sm-3 col-form-label">Apellido Materno</label>
+                <div class="col-sm-9">
+                    <input class="form-control"
+                            formControlName="mothername"
+                        placeholder="Apellido materno">
+                    <span *ngIf="isValidField('mothername')" class="form-text text-danger">
+                        {{ getFieldError('mothername') }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-check mb-3">
+                <!-- <input class="form-check-input" type="checkbox" value="" id="defaultCheck2" formControlName="extraName" (change)="isCheck($event)"> -->
+                <input class="form-check-input" type="checkbox" value="" id="defaultCheck2" formControlName="extraName">
+                <label class="form-check-label" for="defaultCheck2">
+                  Soy peruano
+                </label>
+              </div>
+
+
+                <!-- Nacionalidad -->
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-form-label">Nacionalidad</label>
+                    <div class="col-sm-9">
+                        <input class="form-control"
+                                formControlName="nacionality"
+                                placeholder="Nacionalidad">
+                        <span *ngIf="isValidField('nacionality')" class="form-text text-danger">
+                            {{ getFieldError('nacionality') }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Pais donde hizo la escala-->
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-form-label">Pais donde hizo la escala</label>
+                    <div class="col-sm-9">
+                        <input class="form-control"
+                                formControlName="countryStopover"
+                                placeholder="Pais donde hizo la escala">
+                        <span *ngIf="isValidField('countryStopover')" class="form-text text-danger">
+                            {{ getFieldError('countryStopover') }}
+                        </span>
+                    </div>
+                </div>
+
+
+
+    
+
+    </form>
+</div>
+
+
+
+
+<span>Valores</span>
+<pre>{{ registroForm.get('extraValues').value | json }}</pre>
+<pre>{{ registroForm.get('lastname').value | json }}</pre>
+<pre>{{ registroForm.get('mothername').value | json }}</pre>
+<pre>{{ registroForm.get('extraName').value | json }}</pre>
+<pre>{{ registroForm.get('nacionality').value | json }}</pre>
+<pre>{{ registroForm.get('countryStopover').value | json }}</pre>
+<br>
