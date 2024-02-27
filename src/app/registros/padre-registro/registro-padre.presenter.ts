@@ -1,15 +1,15 @@
 import { Injectable, OnDestroy, OnInit } from "@angular/core";
 import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
-import { Observable, Subject, interval, of, take, takeUntil, tap } from "rxjs";
+import { Observable, Subject, Subscription, interval, of, take, takeUntil, tap } from "rxjs";
 
 @Injectable()
 export class RegistroPadrePresenter implements OnDestroy{
   public form: FormGroup;
   public formExtra: FormGroup;  
-  public subscribeExtraName;
+  public subscribeIsPeruvian: Subscription;
 
 
-  private listSubscribers = [];
+  private listSubscribers: Array<Subscription> = [];
   private unsubscribe: Subject<void>;
   private countCheck: Subject<number>;
   private count: number = 0;
@@ -84,117 +84,36 @@ export class RegistroPadrePresenter implements OnDestroy{
     
   // *************************************************
 
-  // Caso 1: problema que complete() termina el observable
+  // Caso 1: problema que complete() termina el observable(Subject)
   // Solucion: quitarle el this.unsubscribe.complete() en subsribeExtraValues()
   // Caso 2: problema que this.unsubscribe next() termina todos los subscribes
   // solucion quitarle takeuntil al susbscribeTiempoTotal()
   //          agregar subscricion a la lista de subscribe y esta se desubscribe en el ngOnDestroy()
-  // private subsribeExtraValues(): void {
-  //   this.formExtra.get('extraValues').valueChanges.pipe(
-  //     tap( val => console.log('extraValues', val)),
-  //   ).subscribe(hasExtraValues => {
-  //     if(hasExtraValues) {
-  //       this.enableExtraValuesControls();
-  //       this.enableExtraNameControls();
-  //       this.subsribeExtraName();
-  //       this.susbscribeTiempoCheck();
-  //     } else {
-  //       this.unsubscribe.next();
-  //       this.unsubscribe.complete(); // caso 1
-  //       this.resetExtraValuesControls();
-  //       this.disableExtraValuesControls();
-  //       this.resetExtraNameControls();
-  //       this.disableExtraNameControls();
-  //       this.unsubscribe = new Subject(); // bonus
-  //     }
-  //   });
-  // }
-
-  // private subsribeExtraName(): void {
-  //   this.subscribeExtraName = this.formExtra.get('extraName').valueChanges.pipe(
-  //     tap( val => console.log('extraName',val)),
-  //     takeUntil(this.unsubscribe)
-  //   ).subscribe(hasExtraName => {
-  //     if(hasExtraName) {;
-  //       this.formExtra.get('nacionality').setValue('Peruana');
-  //       this.formExtra.get('countryStopover').reset();
-  //       this.disableExtraNameControls();
-  //     } else {
-  //       this.formExtra.get('nacionality').reset();
-  //       this.enableExtraNameControls();
-  //     }
-  //   });
-    
-  // }
-
-  // private susbscribeTiempoTotal() {
-
-  //   const intervalo$ = new Observable<number>(
-  //     subscriber => {
-  //       let count = 0;
-
-  //       setInterval( () => {
-  //         count++;
-  //         subscriber.next( count );
-  //       }, 1000);
-  //     });
-
-      
-
-  //     const subsTiempoTotal = intervalo$.pipe(
-  //       takeUntil(this.unsubscribe) // caso 2
-  //     ).subscribe( num => console.log( 'tiempo total en la pagina', num));
-
-  //     this.listSubscribers.push(subsTiempoTotal); // caso 2
-     
-  // }
-
-  // private susbscribeTiempoCheck() {
-
-  //   const intervalo$ = new Observable<number>(
-  //     subscriber => {
-  //       let count = 0;
-
-  //       setInterval( () => {
-  //         count++;
-  //         subscriber.next( count );
-  //       }, 1000);
-  //     });
-
-  //     const subsTiempoCheck = intervalo$.pipe(
-  //       takeUntil(this.unsubscribe)
-  //     ).subscribe( num => console.log( 'tiempo desde que le dio el check', num));
-     
-  // }
-    
-
-  // *********************************************************
-
-  //Caso 3: Crear un observable usando operadores
-  //Solucion: implementar interval()
   private subsribeExtraValues(): void {
     this.formExtra.get('extraValues').valueChanges.pipe(
       tap( val => console.log('extraValues', val)),
     ).subscribe(hasExtraValues => {
-      this.countCheck.next(this.count = this.count + 1);
       if(hasExtraValues) {
         this.enableExtraValuesControls();
         this.enableExtraNameControls();
-        this.subsribeExtraName();
-        this.susbscribeTiempoCheck();
+        this.subsribeIsPeruvian();
+        // this.susbscribeTiempoCheck();
       } else {
         this.unsubscribe.next();
-
+        this.unsubscribe.complete(); // caso 1
+        // this.subscribeIsPeruvian.unsubscribe(); // caso 3
         this.resetExtraValuesControls();
         this.disableExtraValuesControls();
         this.resetExtraNameControls();
         this.disableExtraNameControls();
+        // this.unsubscribe = new Subject(); // bonus
       }
     });
   }
 
-  private subsribeExtraName(): void {
-    this.subscribeExtraName = this.formExtra.get('extraName').valueChanges.pipe(
+  private subsribeIsPeruvian(): void {
+
+    this.subscribeIsPeruvian = this.formExtra.get('extraName').valueChanges.pipe(
       tap( val => console.log('extraName',val)),
       takeUntil(this.unsubscribe)
     ).subscribe(hasExtraName => {
@@ -206,7 +125,8 @@ export class RegistroPadrePresenter implements OnDestroy{
         this.formExtra.get('nacionality').reset();
         this.enableExtraNameControls();
       }
-    });    
+    });
+    
   }
 
   private susbscribeTiempoTotal() {
@@ -221,14 +141,13 @@ export class RegistroPadrePresenter implements OnDestroy{
         }, 1000);
       });
 
-    // const intervalo$ = interval(1000); // case 3
       
 
-      const subsTiempoTotal = intervalo$.pipe(
-        // takeUntil(this.unsubscribe)
+      const subsTiempoTotal: Subscription = intervalo$.pipe(
+        takeUntil(this.unsubscribe) // caso 2
       ).subscribe( num => console.log( 'tiempo total en la pagina', num));
 
-      this.listSubscribers.push(subsTiempoTotal);
+      this.listSubscribers.push(subsTiempoTotal); // caso 2
      
   }
 
@@ -244,10 +163,12 @@ export class RegistroPadrePresenter implements OnDestroy{
         }, 1000);
       });
 
-      const subsTiempoCheck = intervalo$.pipe(
+      const subsTiempoCheck: Subscription = intervalo$.pipe(
         takeUntil(this.unsubscribe)
       ).subscribe( num => console.log( 'tiempo desde que le dio el check', num));
+
+      this.listSubscribers.push(subsTiempoCheck);
      
   }
-
+  
 }
