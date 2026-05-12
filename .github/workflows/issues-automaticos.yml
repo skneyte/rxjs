@@ -1,0 +1,140 @@
+name: Crear issue desde nombre de rama
+
+on:
+  create:
+
+jobs:
+  create-issue:
+    if: github.event.ref_type == 'branch'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Crear issue automático
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+          script: |
+            const branchName = context.payload.ref;
+            const creator = context.payload.sender.login;
+
+            console.log(`Branch detectada: ${branchName}`);
+
+            /**
+             * Formato esperado:
+             * tipo/BEBAW-444-descripcion
+             *
+             * Ejemplo:
+             * feature/BEBAW-444-login-google
+             */
+
+            const regex = /^([^\/]+)\/([A-Z]+-\d+)-(.+)$/;
+            const match = branchName.match(regex);
+
+            if (!match) {
+              core.setFailed(`
+                El nombre de la rama no cumple el formato esperado.
+                
+                Formato:
+                tipo/BEBAW-123-descripcion
+                
+                Ejemplo:
+                feature/BEBAW-444-login-google
+              `);
+              return;
+            }
+
+            const branchType = match[1];
+            const jiraTicket = match[2];
+            const description = match[3]
+              .replace(/-/g, ' ')
+              .replace(/\b\w/g, c => c.toUpperCase());
+
+            const allowedLabels = [
+              'bug',
+              'bugfix',
+              'ci-cd',
+              'feature',
+              'test',
+              'chore',
+              'release',
+              'refactor',
+              'hotfix'
+            ];
+
+            if (!allowedLabels.includes(branchType)) {
+              core.setFailed(`Tipo de rama no permitido: ${branchType}`);
+              return;
+            }
+
+            // Colores por label
+            const labelColors = {
+              bug: 'd73a4a',
+              bugfix: 'ff0000',
+              'ci-cd': '5319e7',
+              feature: '0e8a16',
+              test: 'fbca04',
+              chore: 'cfd3d7',
+              release: '1d76db',
+              refactor: 'f9d0c4',
+              hotfix: 'b60205'
+            };
+
+            // Crear label si no existe
+            try {
+              await github.rest.issues.getLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: branchType
+              });
+
+              console.log(`Label ${branchType} ya existe`);
+            } catch (error) {
+
+              if (error.status === 404) {
+                console.log(`Creando label ${branchType}`);
+
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: branchType,
+                  color: labelColors[branchType] || 'ededed'
+                });
+              } else {
+                throw error;
+              }
+            }
+
+            // Crear issue
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+
+              title: `[${jiraTicket}] ${description}`,
+
+              body: `
+              ## Rama detectada automáticamente
+
+              ### Información
+
+              - Tipo: \`${branchType}\`
+              - Ticket Jira: \`${jiraTicket}\`
+              - Rama: \`${branchName}\`
+              - Creada por: @${creator}
+
+              ---
+
+              ## Checklist
+
+              - [ ] Desarrollo iniciado
+              - [ ] Tests agregados
+              - [ ] PR creado
+              - [ ] QA validado
+              `,
+
+              labels: [branchType],
+              assignees: [creator]
+            });
+
+            console.log(`Issue creado: ${issue.data.html_url}`);
