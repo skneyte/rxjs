@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { AsyncSubject, BehaviorSubject, Observable, Subject, concat, from, fromEvent, interval, of, range, zip, lastValueFrom, throwError, firstValueFrom  } from 'rxjs';
-import { catchError, concatMap, delay, filter, map, mergeMap, retry, startWith, switchMap, take, takeUntil, tap } from 'rxjs/operators';
+import { AsyncSubject, BehaviorSubject, Observable, Subject, concat, from, fromEvent, interval, of, range, zip, lastValueFrom, throwError, firstValueFrom, ReplaySubject  } from 'rxjs';
+import { catchError, concatMap, delay, filter, map, mergeMap, retry, share, startWith, switchMap, take, takeUntil, tap } from 'rxjs/operators';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Character } from '../commons/interfaces/character.interface';
 import { CharacterAnidado, CharacterAnidadoPersonalizado } from '../commons/interfaces/character-anidado.interface';
@@ -22,6 +22,9 @@ export class PeticionesComponent implements OnInit {
   private dataCache: Subject<Origen> = new Subject();
   private dataCacheBehaviorSubject : BehaviorSubject <Origen>;
   private dataCacheBehaviorAsyncSubject : AsyncSubject <Origen>;
+  private dataCacheReplaySubject: ReplaySubject <Origen>;
+
+  private replaySubject: ReplaySubject <number>;
 
   constructor(
     private http: HttpClient 
@@ -54,6 +57,8 @@ export class PeticionesComponent implements OnInit {
       // this.dataCacheBehaviorAsyncSubject.subscribe(
       //   val => console.log(`%c ${val.dimension}`, 'color: green; font-weight: bold;')
       // )
+
+     // this.replaySubject = new Subject();
     
     }
 
