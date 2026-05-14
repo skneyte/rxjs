@@ -1,0 +1,42 @@
+name: Notify Teams on PR
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send message to Teams
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
+          PR_BRANCH="${{ github.event.pull_request.head.ref }}"
+
+          MESSAGE=$(cat <<EOF
+          {
+            "@type": "MessageCard",
+            "@context": "http://schema.org/extensions",
+            "summary": "Nuevo Pull Request",
+            "themeColor": "0076D7",
+            "title": "🚀 Nuevo Pull Request",
+            "sections": [{
+              "facts": [
+                { "name": "Autor", "value": "$PR_AUTHOR" },
+                { "name": "Branch", "value": "$PR_BRANCH" }
+              ],
+              "text": "**$PR_TITLE**\n\n[Ver PR]($PR_URL)"
+            }]
+          }
+          EOF
+          )
+
+          curl -H "Content-Type: application/json" \
+               -d "$MESSAGE" \
+               "${{ secrets.TEAMS_WEBHOOK_URL }}"
