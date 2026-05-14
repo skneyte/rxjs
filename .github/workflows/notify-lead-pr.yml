@@ -1,0 +1,69 @@
+name: Notify Lead on PR
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send PR notification to Lead Channel
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
+          PR_BRANCH="${{ github.event.pull_request.head.ref }}"
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+
+          cat <<EOF > payload.json
+          {
+            "type": "message",
+            "attachments": [
+              {
+                "contentType": "application/vnd.microsoft.card.adaptive",
+                "content": {
+                  "\$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                  "type": "AdaptiveCard",
+                  "version": "1.4",
+                  "body": [
+                    {
+                      "type": "TextBlock",
+                      "text": "📢 Nuevo o Actualizado PR",
+                      "weight": "Bolder",
+                      "size": "Large"
+                    },
+                    {
+                      "type": "FactSet",
+                      "facts": [
+                        { "title": "Autor:", "value": "$PR_AUTHOR" },
+                        { "title": "Branch:", "value": "$PR_BRANCH" },
+                        { "title": "PR #:", "value": "$PR_NUMBER" }
+                      ]
+                    },
+                    {
+                      "type": "TextBlock",
+                      "text": "$PR_TITLE",
+                      "wrap": true
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "type": "Action.OpenUrl",
+                      "title": "🔎 Ver Pull Request",
+                      "url": "$PR_URL"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+          EOF
+
+          curl -H "Content-Type: application/json" \
+               -d @payload.json \
+               "${{ secrets.TEAMS_WEBHOOK_URL_LEAD }}"
