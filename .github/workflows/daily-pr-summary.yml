@@ -1,0 +1,51 @@
+name: Daily Open PR Summary
+
+on:
+  schedule:
+    - cron: "0 18 * * 1-5"  # 6:00 PM UTC (ajustar zona horaria)
+  workflow_dispatch:       # Permite ejecutarlo manualmente
+
+jobs:
+  summary:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get Open PRs
+        id: prs
+        run: |
+          RESPONSE=$(curl -s \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }}/pulls?state=open)
+
+          COUNT=$(echo "$RESPONSE" | jq length)
+
+          if [ "$COUNT" -eq 0 ]; then
+            echo "MESSAGE=✅ No hay Pull Requests abiertos." >> $GITHUB_ENV
+            exit 0
+          fi
+
+          DETAILS=$(echo "$RESPONSE" | jq -r '.[] |
+            "- #" + (.number|tostring) +
+            " | " + .title +
+            " | 👤 " + .user.login +
+            " | 🔗 " + .html_url')
+
+          echo "MESSAGE=📊 **Resumen Diario de PRs Abiertos**%0A%0A🔢 Total: $COUNT%0A%0A$DETAILS" >> $GITHUB_ENV
+
+      - name: Send to Teams
+        run: |
+          cat <<EOF > payload.json
+          {
+            "@type": "MessageCard",
+            "@context": "http://schema.org/extensions",
+            "summary": "Resumen diario de PRs",
+            "themeColor": "FF8C00",
+            "title": "📊 Resumen Diario de Pull Requests",
+            "text": "${{ env.MESSAGE }}"
+          }
+          EOF
+
+          curl -H "Content-Type: application/json" \
+               -d @payload.json \
+               "${{ secrets.TEAMS_WEBHOOK_URL }}"
